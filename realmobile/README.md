@@ -2,7 +2,7 @@
 
 A benchmark and scoring framework for **evaluating mobile GUI agents**.
 
-Agents (such as `GuiClaw`, built on top of large models like Claude) operate Chinese-language apps (Bilibili, QQ, Douyin, RED/Xiaohongshu, Weibo, Taobao, QQ Music, Ctrip, AMap, etc.) on real Android phones to complete natural-language tasks. This repository records the agent's execution **trajectories** (screenshots + UI hierarchy XML + OCR + actions), scores each trajectory with **hand-written rule scripts**, and aggregates the results into success rates.
+Agents (such as `guiness`, built on top of large models like Claude) operate Chinese-language apps (Bilibili, QQ, Douyin, RED/Xiaohongshu, Weibo, Taobao, QQ Music, Ctrip, AMap, etc.) on real Android phones to complete natural-language tasks. This repository records the agent's execution **trajectories** (screenshots + UI hierarchy XML + OCR + actions), scores each trajectory with **hand-written rule scripts**, and aggregates the results into success rates.
 
 ## Directory Structure
 
@@ -124,6 +124,6 @@ Aggregate scores and success rates                                      →  res
 
 ## Notes
 - Example phone models seen in the data: Redmi 12 5G / Xiaomi 14 Pro Ti, Android 13/15.
-- The `task` field is labeled `GuiClaw`; some entries are "GuiClaw human-annotated" golden trajectories.
+- The `task` field is labeled `guiness`; some entries are "guiness human-annotated" golden trajectories.
 - `query_comparison_report.json` records the mapping between 108 queries and their corresponding model (e.g. `claude-opus-4-7`) trajectories, used for cross-model/version comparison.
 - The benchmark currently contains **108 evaluation tasks and 433 trajectories**, with an overall success rate of about **90.8%**.
