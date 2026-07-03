@@ -52,14 +52,26 @@ Instead of a single pass/fail signal, each task is decomposed into ordered **sub
 
 ## 🗂️ Repository Layout
 
+```text
+realmobile/
+├── rules/
+│   ├── 1.py … 100.py            # One scoring script per task (QUERY + STEPRULES + matchers)
+│   ├── evaluator_xpath.py       # Scoring engine: UI-XML parsing + XPath matching
+│   ├── main_eval.py             # Batch evaluation runner
+│   ├── trajectory_summary.json  # id → query summary used by the runner
+│   └── human_eval.csv           # sid ↔ query order for human-aligned reporting
+└── query_comparison_report.json # Task queries ↔ model trajectories, for cross-model comparison
+```
+
 | Path | What it is |
 |---|---|
-| [`rules/`](rules/) | **Scoring scripts (core).** One `N.py` per task, each with `QUERY`, `STEPRULES`, and per-step matchers; plus the `evaluator_xpath.py` engine and `main_eval*.py` batch runners. |
-| [`paddle/`](paddle/) | **PaddleOCR models** (detection / recognition / classification / doc-orientation) used to enrich UI XML with on-screen text. |
-| [`results/`](results/) | **Evaluation outputs** — aggregated scores and success rates in JSON / CSV / XLSX. |
-| [`query_comparison_report.json`](query_comparison_report.json) | Cross-reference report mapping task queries to model trajectories, for cross-model comparison. |
+| [`rules/1.py … 100.py`](rules/) | **Scoring scripts (core).** One per task — each defines `QUERY`, `STEPRULES`, and per-step matchers. |
+| [`rules/evaluator_xpath.py`](rules/evaluator_xpath.py) | **Scoring engine.** Parses Android UI XML and provides XPath-style matching. |
+| [`rules/main_eval.py`](rules/main_eval.py) | **Batch runner.** Scores a set of trajectories across all tasks and aggregates the results. |
+| [`rules/trajectory_summary.json`](rules/trajectory_summary.json), [`rules/human_eval.csv`](rules/human_eval.csv) | Query metadata and ordering used by the runner. |
+| [`query_comparison_report.json`](query_comparison_report.json) | Cross-reference report mapping task queries to model trajectories. |
 
-> **Note** — Trajectory data (screenshots + UI XML) is not committed to the repo due to size. The scripts here assume a local trajectory directory laid out as `<batch>/<episode_id>/` (see the trajectory format below).
+> **Note** — Trajectory data (screenshots + UI XML) is not committed to the repo due to size. The scripts assume a local trajectory directory laid out as `<batch>/<episode_id>/` (see the trajectory format below).
 
 ## 🧩 How Scoring Works
 
@@ -70,13 +82,13 @@ Agent runs a task on a physical phone
 Collect trajectory  (screenshots + uiautomator XML + action coordinates)
         │
         ▼
-Enrich XML with PaddleOCR  →  N_ocr.xml            ← paddle/
+(Optional) enrich UI XML with OCR  →  N_ocr.xml
         │
         ▼
 rules/N.py  scores step by step via XPath rules    ← evaluator_xpath.py
         │
         ▼
-Aggregate scores & success rates                   → results/
+main_eval.py  aggregates scores & success rates
 ```
 
 ### Trajectory format
@@ -87,7 +99,7 @@ Each trajectory is a folder (e.g. `<batch>/67037d53/`) capturing one full task e
 |------|---------|
 | `task.json` | Task metadata + every step's action (query, app, phone model, tap coordinates, thought…) |
 | `N.xml` | Android UI-hierarchy tree at step N (`uiautomator dump`) |
-| `N_ocr.xml` | PaddleOCR-enriched XML with an `ocr_texts` attribute (preferred during scoring) |
+| `N_ocr.xml` | OCR-enriched XML with an `ocr_texts` attribute (preferred during scoring) |
 | `N.png` / `N.jpg` | Screenshot at step N |
 | `N.json` | Action metadata at step N |
 | `N_error.txt` | Error log for that step, if any |
@@ -107,8 +119,7 @@ Scoring is **cumulative**: multi-step tasks award credit progressively (0.33 / 0
 ## 🚀 Usage
 
 ```bash
-pip install lxml
-# The OCR enrichment step additionally uses PaddleOCR (models included under paddle/).
+pip install lxml pandas tqdm
 ```
 
 **Score one task from code:**
@@ -127,7 +138,13 @@ result = rule.evaluate_trajectory("<batch>/67037d53")
 # }
 ```
 
-**Aggregated results** live in `results/evaluation_results_<timestamp>.{json,csv,xlsx}`:
+**Run the full batch evaluation:**
+
+```bash
+python rules/main_eval.py     # scores all tasks and aggregates success rates
+```
+
+The runner writes an aggregated report (`evaluation_results_<timestamp>.{json,csv,xlsx}`) with this shape:
 
 ```json
 {
