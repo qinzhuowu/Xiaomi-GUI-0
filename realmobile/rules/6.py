@@ -14,11 +14,12 @@ except ImportError:
 # 固定的任务信息
 QUERY = "对比一下得物、抖音商城以及橘子app上苹果17的价格，最后总结一下三个平台的价格对比"
 TASK_ID = 6
-STEPRULES = """1. 在得物中查看苹果17的价格信息 → 总分:0.33
+STEPRULES = """1. 在得物中查看苹果17的价格信息 → 总分:0.5
 
-2. 在抖音商城中查看苹果17的价格信息 → 总分:0.66
+2. 在抖音商城中查看苹果17的价格信息 → 总分:1.0
 
-3. 在橘子app中查看苹果17的价格信息 → 总分:1.0"""
+"""
+# 3. 在橘子app中查看苹果17的价格信息 → 总分:1.0
 
 
 def load_trajectory_data(path: str) -> Tuple[List[str], List[Dict[str, Any]]]:
@@ -214,27 +215,21 @@ def evaluate_trajectory(path: str) -> dict:
     # 评估各规则
     rule1_satisfied, rule1_evidence = evaluate_rule_1(xml_strings, actions)
     rule2_satisfied, rule2_evidence = evaluate_rule_2(xml_strings, actions)
-    rule3_satisfied, rule3_evidence = evaluate_rule_3(xml_strings, actions)
+    # rule3_satisfied, rule3_evidence = evaluate_rule_3(xml_strings, actions)
 
     details = [
         {
             "rule": "在得物中查看苹果17的价格信息",
-            "score": 0.33 if rule1_satisfied else 0.0,
+            "score": 0.5 if rule1_satisfied else 0.0,
             "satisfied": rule1_satisfied,
             "evidence": rule1_evidence
         },
         {
             "rule": "在抖音商城中查看苹果17的价格信息",
-            "score": 0.33 if rule2_satisfied else 0.0,
+            "score": 0.5 if rule2_satisfied else 0.0,
             "satisfied": rule2_satisfied,
             "evidence": rule2_evidence
         },
-        {
-            "rule": "在橘子app中查看苹果17的价格信息",
-            "score": 0.34 if rule3_satisfied else 0.0,
-            "satisfied": rule3_satisfied,
-            "evidence": rule3_evidence
-        }
     ]
 
     # 最终总分 = 所有满足的规则的分值之和
